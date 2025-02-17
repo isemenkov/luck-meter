@@ -1,0 +1,46 @@
+services:
+  backend:
+    build:
+      context: "."
+      dockerfile: ./docker/Dockerfile
+      args:
+        CONTAINER_VERSION: '8.4'
+        CONTAINER_TYPE: 'fpm-alpine'
+        USER_NAME: ${USER_NAME}
+        USER_ID: ${USER_ID}
+        GROUP_NAME: ${GROUP_NAME}
+        GROUP_ID: ${GROUP_ID}
+    container_name: lm-backend
+    restart: unless-stopped
+    #depends_on:
+    #  - database
+    environment:
+      XDEBUG_CONFIG: idekey=PHPSTORM
+      PHP_IDE_CONFIG: serverName=lm-backend
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    volumes:
+      - ./:/var/www
+
+  #database:
+  #  image: postgres:15.10
+  #  container_name: w-database
+  #  restart: unless-stopped
+  #  environment:
+  #    POSTGRES_USER: ${DB_USERNAME}
+  #    POSTGRES_PASSWORD: ${DB_PASSWORD}
+  #    POSTGRES_DB: ${DB_DATABASE}
+  #  ports:
+  #    - '5432:5432'
+  #  volumes:
+  #    - ./docker/database/postgresql/data:/var/lib/postgresql/data
+
+  webserver:
+    image: nginx:1.27.4-alpine3.21
+    container_name: lm-webserver
+    restart: on-failure
+    ports:
+      - '${NGINX_HOST_HTTP_PORT:-80}:80'
+      - '${NGINX_HOST_HTTPS_PORT:-443}:443'
+    volumes:
+      - ./docker/webserver/config/:/etc/nginx/conf.d
